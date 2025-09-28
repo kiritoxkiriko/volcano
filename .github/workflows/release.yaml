@@ -1,12 +1,13 @@
 name: daily release
 on:
-  schedule:
-  # Runs at 0:00 and 12:00 UTC every day
-  - cron:  '0 */12 * * *'
+  #schedule:
+  ## Runs at 0:00 and 12:00 UTC every day
+  #- cron:  '0 */12 * * *'
   # Automatically push the image when releasing the version
   push:
     tags:
       - "v*.*.*"
+      - "v*.*.*-*"
 
 
 jobs:
@@ -57,14 +58,17 @@ jobs:
           sudo make unit-test
         working-directory: ./src/github.com/${{ github.repository }}
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v3 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Daily Release
-        run: docker buildx create --use && make TAG=${{ env.TAG }} RELEASE_VER=${{ env.RELEASE_VER }} DOCKER_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} DOCKER_PASSWORD=${{ secrets.DOCKERHUB_TOKEN }} CC=/usr/local/musl/bin/musl-gcc DOCKER_PLATFORMS="linux/amd64,linux/arm64" BUILDX_OUTPUT_TYPE=registry release
+        run: |
+          docker buildx create --use
+          make TAG=${{ env.TAG }} RELEASE_VER=${{ env.RELEASE_VER }} DOCKER_USERNAME=${{ github.actor }} DOCKER_PASSWORD=${{ secrets.GITHUB_TOKEN }} CC=/usr/local/musl/bin/musl-gcc DOCKER_PLATFORMS="linux/amd64,linux/arm64" BUILDX_OUTPUT_TYPE=registry release
         working-directory: ./src/github.com/${{ github.repository }}
 
       - name: Loginout DockerHub
