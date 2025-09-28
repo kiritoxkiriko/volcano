@@ -159,6 +159,13 @@ func (pg *pgcontroller) addStatefulSet(obj interface{}) {
 				return
 			}
 
+			// If the pod is already associated with a podgroup, skip creating a new one. This scenario is applicable to LeaderWorkerSet,
+			// which will create podgroups by itself, and Volcano does not need to create a podgroup for statefulset.
+			if pgName := pod.Annotations[scheduling.KubeGroupNameAnnotationKey]; pgName != "" {
+				klog.V(4).Infof("Pod %s is already associated with a podgroup %s", klog.KObj(pod), pgName)
+				return
+			}
+
 			err := pg.createOrUpdateNormalPodPG(pod)
 			if err != nil {
 				klog.Errorf("Failed to create or update PodGroup for pod <%s/%s>: %v", pod.Namespace, pod.Name, err)

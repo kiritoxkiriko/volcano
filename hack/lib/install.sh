@@ -69,7 +69,7 @@ function check-kind {
   which kind >/dev/null 2>&1
   if [[ $? -ne 0 ]]; then
     echo "Installing kind ..."
-    GOOS=${OS} go install sigs.k8s.io/kind@v0.26.0
+    GOOS=${OS} go install sigs.k8s.io/kind@v0.29.0
   else
     echo -n "Found kind, version: " && kind version
   fi
@@ -98,4 +98,13 @@ function install-ginkgo-if-not-exist {
   else
     echo -n "Found ginkgo, version: " && ginkgo version
   fi
+}
+
+function install-kwok-with-helm {
+  helm repo add kwok https://kwok.sigs.k8s.io/charts/
+  helm repo update
+  helm upgrade --namespace kube-system --install kwok kwok/kwok
+  helm upgrade --install kwok kwok/stage-fast
+  # delete pod-complete stage to avoid volcano-job-pod change status to complete.
+  kubectl delete stage pod-complete
 }

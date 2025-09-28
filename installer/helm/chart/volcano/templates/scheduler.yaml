@@ -119,6 +119,9 @@ rules:
   - apiGroups: ["resource.k8s.io"]
     resources: ["deviceclasses","resourceslices"]
     verbs: ["get", "list", "watch", "create"]
+  - apiGroups: [ "resource.k8s.io" ]
+    resources: [ "devicetaintrules" ]
+    verbs: [ "get", "list", "watch" ]
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -223,6 +226,9 @@ spec:
             {{- if .Values.custom.scheduler_feature_gates }}
             - --feature-gates={{ .Values.custom.scheduler_feature_gates }}
             {{- end }}
+            {{- if .Values.custom.ignored_provisioners }}
+            - --ignored-provisioners={{ .Values.custom.ignored_provisioners}}
+            {{- end}}
             - -v={{.Values.custom.scheduler_log_level}}
             - 2>&1
           env:

@@ -20,22 +20,22 @@ set -o pipefail
 
 VK_ROOT=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/..
 export RELEASE_FOLDER=${VK_ROOT}/${RELEASE_DIR}
-export RELEASE_TAG=${TAG:-"v1.12.1"}
+export RELEASE_TAG=${TAG:-"latest"}
 
 # Extract image tag from development yaml file
 get_development_image_tag() {
 	local dev_file="$1"
 	# Get all volcanosh image:tag pairs
 	local image_tags=($(grep -o 'volcanosh/[^:]*:[^[:space:]]*' "$dev_file"))
-
+	
 	if [[ ${#image_tags[@]} -eq 0 ]]; then
 		echo "ERROR: No volcanosh images found in $dev_file" >&2
 		return 1
 	fi
-
+	
 	# Extract unique tags
 	local tags=($(printf '%s\n' "${image_tags[@]}" | cut -d':' -f2 | sort -u))
-
+	
 	if [[ ${#tags[@]} -gt 1 ]]; then
 		echo "ERROR: Inconsistent image tags found in $dev_file:" >&2
 		for img_tag in "${image_tags[@]}"; do
@@ -43,7 +43,7 @@ get_development_image_tag() {
 		done
 		return 1
 	fi
-
+	
 	echo "${tags[0]}"
 }
 
